@@ -10,9 +10,10 @@ import seaborn
 import subprocess
 import warnings
 
-def _get_data(ts, species, iteration, waist, verbose=False, e_lim=50):
+def _get_data(ts, species, iteration, waist, verbose=False, e_lim=50, sim_3D=False):
     pdata = ts.get_particle(species=species, var_list=["x", "z", "ux", "uy", "uz", "w"], iteration=iteration)
-    pdata[5] *= waist*1e-6
+    if not sim_3D:
+        pdata[5] *= waist*1e-6
     if verbose:
         print("species : {}, charge above {} MeV : {:.3f} pC".format(
             species, 
@@ -132,7 +133,9 @@ class ExtendedTS:
     """simulation timestep (if output.txt exists)"""
     dz_mov: float
     """if moving window moving @ c, z displacement per time step"""
-    def __init__(self, sim_path, customName=None):
+    is3D: bool
+    """self explanatory"""
+    def __init__(self, sim_path, customName=None, sim_3D=False):
         """
         Parameters
         ---------------
@@ -147,6 +150,7 @@ class ExtendedTS:
         - ExtendedTS
         """
         self.path = sim_path
+        self.is3D = sim_3D
         if customName==None:
             self.name = (sim_path.split("/"))[-1]
         else:
@@ -286,9 +290,9 @@ class ExtendedTS:
                     print(f'Species {spec} does not exist. Skipping this one')
                     continue
                 if i==0:
-                    pdata = _get_data(diag, spec, iteration, waist, verbose=verbose)
+                    pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, sim_3D=self.is3D)
                 else:
-                    pdata_sp = _get_data(diag, spec, iteration, waist, verbose=verbose)
+                    pdata_sp = _get_data(diag, spec, iteration, waist, verbose=verbose, sim_3D=self.is3D)
                     pdata = np.concatenate((pdata, pdata_sp), axis=1)
             en, _ = _get_e_w(pdata)
             if en.shape[0]==0: # no energy data -> skip
@@ -299,7 +303,7 @@ class ExtendedTS:
                 return E,Q,dE,species
             if maxE==None:
                 maxE = np.max(en)
-            hist, bins = _get_hist(pdata, maxE=maxE, nbins=nbins)
+            hist, bins = _get_hist(pdata, maxE=maxE, nbins=nbins, minE=minE)
             
             bc = (bins[:-1] + bins[1:]) / 2
 
@@ -337,7 +341,7 @@ class ExtendedTS:
                     print(f'Species {spec} does not exist. Skipping this one')
                     continue
 
-                pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=10)
+                pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=10, sim_3D=self.is3D)
                 en, _ = _get_e_w(pdata)
                 if en.shape[0]==0: # no energy data -> skip
                     E[i] = 0
@@ -346,7 +350,7 @@ class ExtendedTS:
                     continue
                 if maxE==None:
                     maxE = np.max(en)
-                hist, bins = _get_hist(pdata, maxE=maxE, nbins=nbins)
+                hist, bins = _get_hist(pdata, maxE=maxE, nbins=nbins, minE=minE)
                 
                 bc = (bins[:-1] + bins[1:]) / 2
 
@@ -443,7 +447,7 @@ class ExtendedTS:
                 print(f'Species {spec} does not exist. Skipping this one')
                 continue
 
-            pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=10)
+            pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=minE, sim_3D=self.is3D)
             en, _ = _get_e_w(pdata)
             if en.shape[0]==0:
                 print("no charge for species {}".format(spec))
@@ -481,7 +485,7 @@ class ExtendedTS:
 
         fig, ax = plt.subplots()
         
-        self.makeSpectrumOnAx(ax, diag, iteration, waist, species, nbins, verbose, minE)
+        self.makeSpectrumOnAx(ax, diag, iteration, waist, species, nbins, verbose, minE=minE)
 
         plt.tight_layout()
 
