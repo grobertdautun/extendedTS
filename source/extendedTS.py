@@ -232,7 +232,7 @@ class ExtendedTS:
                 message += "\n | + " + str(diag_ts.iterations)
         print(message)
 
-    def getParticlesSummary(self, diag, iteration, waist, species='all', cumulative=False, verbose=False, print_table=False, nbins=150, minE=50, maxE=None):
+    def getParticlesSummary(self, diag, iteration, waist, species='all', cumulative=False, verbose=False, print_table=False, nbins=150, minE=50, maxE=None, peak_height=50):
         """
         Returns the peak energy, the charge (50%) and energy spread (50%)
 
@@ -275,6 +275,10 @@ class ExtendedTS:
 
             energy limits of the spectrum. Defaults are 50, None (auto computed)
 
+        **peak_height** : float, optional
+
+            percentage of the peak height to compute the energy spread. Default is 50 (%)
+
         Returns
         -------------------------
         - E : array of float or float if cumulative = True
@@ -311,7 +315,7 @@ class ExtendedTS:
             peak_en_val = bc[peak_en]
             peak_en_h = hist[peak_en]
 
-            HM = 0.5 * peak_en_h
+            HM = peak_height / 100 * peak_en_h
 
             left = peak_en
             right = peak_en +1
@@ -358,7 +362,7 @@ class ExtendedTS:
                 peak_en_val = bc[peak_en]
                 peak_en_h = hist[peak_en]
 
-                HM = 0.5 * peak_en_h
+                HM = peak_height / 100 * peak_en_h
 
                 left = peak_en
                 right = peak_en +1
