@@ -24,6 +24,8 @@ def _get_data(ts, species, iteration, waist, verbose=False, e_lim=50, sim_3D=Fal
 
 def _get_e_w(pdata, ang_lim=1.0):
     en = (np.sqrt(1.0 + pdata[2]**2 + pdata[3]**2 + pdata[4]**2)-1)*0.511
+    if ang_lim==None:
+        return [en, pdata[5]]
     ang = np.arctan2(np.sqrt(pdata[2]**2 + pdata[3]**2), pdata[4])*180/np.pi
     fil = ang < ang_lim
     return [en[fil], pdata[5][fil]]
@@ -31,6 +33,8 @@ def _get_e_w(pdata, ang_lim=1.0):
 def _get_e_w_ang(pdata, ang_lim=1.0):
     en = (np.sqrt(1.0 + pdata[2]**2 + pdata[3]**2 + pdata[4]**2)-1)*0.511
     ang = np.sign(pdata[2]) * np.arctan2(np.sqrt(pdata[2]**2 + pdata[3]**2), pdata[4])*180/np.pi
+    if ang_lim==None:
+        return [en, pdata[5], ang]
     fil = np.abs(ang) < ang_lim
     return [en[fil], pdata[5][fil], ang[fil]]
 
