@@ -438,7 +438,6 @@ class ExtendedTS:
         **cumulative** : boolean, optional
 
             output each species separately or sum them, default is False
-            !! not implemented yet
 
         **nbins** : int, optional
 
@@ -465,17 +464,16 @@ class ExtendedTS:
         diag, iteration, species = self._prepareDiagIterationSpecies(diag, iteration, species)
         maxE = 0 
         maxQ = 0
-
-        for i,spec in enumerate(species):
-            if spec not in diag.avail_species:
-                print(f'Species {spec} does not exist. Skipping this one')
-                continue
-
-            pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=minE, sim_3D=self.is3D)
-            en, _ = _get_e_w(pdata, ang_lim=ang_lim)
-            if en.shape[0]==0:
-                print("no charge for species {}".format(spec))
-                continue
+        if cumulative:
+            for i,spec in enumerate(species):
+                if spec not in diag.avail_species:
+                    print(f'Species {spec} does not exist. Skipping this one')
+                    continue
+                if i==0:
+                    pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, sim_3D=self.is3D)
+                else:
+                    pdata_sp = _get_data(diag, spec, iteration, waist, verbose=verbose, sim_3D=self.is3D)
+                    pdata = np.concatenate((pdata, pdata_sp), axis=1)
             hist, bins = _get_hist(pdata, maxE=np.max(en), minE=minE, nbins=nbins, ang_lim=ang_lim)
 
             bb = (bins[1:] + bins[:-1]) / 2
@@ -488,11 +486,36 @@ class ExtendedTS:
             else: # if current species has a higher maxE than currently set, expand x-y axis to match
                 maxE = max(maxE, np.max(en))
                 maxQ = max(maxQ, np.max(hist * coeff))
+        else:
+            for i,spec in enumerate(species):
+                if spec not in diag.avail_species:
+                    print(f'Species {spec} does not exist. Skipping this one')
+                    continue
+
+                pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=minE, sim_3D=self.is3D)
+                en, _ = _get_e_w(pdata, ang_lim=ang_lim)
+                if en.shape[0]==0:
+                    print("no charge for species {}".format(spec))
+                    continue
+                hist, bins = _get_hist(pdata, maxE=np.max(en), minE=minE, nbins=nbins, ang_lim=ang_lim)
+
+                bb = (bins[1:] + bins[:-1]) / 2
+                coeff = e * 1e12 / (bb[1] - bb[0])
+
+                ax.plot(bb, hist*coeff, label=spec if label==None else label)
+                if i==0: 
+                    maxE = np.max(en)
+                    maxQ = np.max(hist * coeff)
+                else: # if current species has a higher maxE than currently set, expand x-y axis to match
+                    maxE = max(maxE, np.max(en))
+                    maxQ = max(maxQ, np.max(hist * coeff))
+
+        # post plot limits and labels
         AD_minE, AD_maxE = ax.get_xlim() # already defined axis limits
         AD_minQ, AD_maxQ = ax.get_ylim()
         maxE = max(maxE+10, AD_maxE) # resize if new spectrum does not fit
         maxQ = max(maxQ+1, AD_maxQ)
-        minE = min(minE, AD_minE)
+        minE = min(minE, AD_minE) 
         minQ = min(0, AD_minQ)
         ax.set(
             xlim = (minE,maxE),
