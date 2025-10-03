@@ -38,8 +38,8 @@ def _get_e_w_ang(pdata, ang_lim=1.0):
     fil = np.abs(ang) < ang_lim
     return [en[fil], pdata[5][fil], ang[fil]]
 
-def _get_hist (pdata, nbins=50, maxE=200, minE=50) :
-    en, w = _get_e_w (pdata)
+def _get_hist (pdata, nbins=50, maxE=200, minE=50, ang_lim=1.0):
+    en, w = _get_e_w (pdata, ang_lim=ang_lim)
     hh, bins = np.histogram(en, weights=w, range=(minE,maxE), bins=nbins)
     return hh, bins
 
@@ -315,7 +315,7 @@ class ExtendedTS:
                 return E,Q,dE,species
             if maxE==None:
                 maxE = np.max(en)
-            hist, bins = _get_hist(pdata, maxE=maxE, nbins=nbins, minE=minE)
+            hist, bins = _get_hist(pdata, maxE=maxE, nbins=nbins, minE=minE, ang_lim=ang_lim)
             
             bc = (bins[:-1] + bins[1:]) / 2
 
@@ -362,7 +362,7 @@ class ExtendedTS:
                     continue
                 if maxE==None:
                     maxE = np.max(en)
-                hist, bins = _get_hist(pdata, maxE=maxE, nbins=nbins, minE=minE)
+                hist, bins = _get_hist(pdata, maxE=maxE, nbins=nbins, minE=minE, ang_lim=ang_lim)
                 
                 bc = (bins[:-1] + bins[1:]) / 2
 
