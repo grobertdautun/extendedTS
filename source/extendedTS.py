@@ -404,7 +404,7 @@ class ExtendedTS:
 
             return E, Q, dE, species
 
-    def makeSpectrumOnAx(self, ax, diag, iteration, waist, species='all', nbins=150, verbose=False, cumulative=False, minE=50, maxE=None):
+    def makeSpectrumOnAx(self, ax, diag, iteration, waist, species='all', nbins=150, verbose=False, cumulative=False, minE=50, maxE=None, ang_lim=1.0):
         """
         Plots the spectrum on a given matplotlib ax
 
@@ -449,6 +449,10 @@ class ExtendedTS:
             energy limits of the spectrum. Defaults are 50, None (auto computed)
             !! maxE not working yet
 
+        **ang_lim** : float, optional
+
+            divergence angle limit in degrees to consider particles for the analysis. Default is 1.0°
+
         """
         diag, iteration, species = self._prepareDiagIterationSpecies(diag, iteration, species)
         maxE = 0 
@@ -460,11 +464,11 @@ class ExtendedTS:
                 continue
 
             pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=minE, sim_3D=self.is3D)
-            en, _ = _get_e_w(pdata)
+            en, _ = _get_e_w(pdata, ang_lim=ang_lim)
             if en.shape[0]==0:
                 print("no charge for species {}".format(spec))
                 continue
-            hist, bins = _get_hist(pdata, maxE=np.max(en), minE=minE, nbins=nbins)
+            hist, bins = _get_hist(pdata, maxE=np.max(en), minE=minE, nbins=nbins, ang_lim=ang_lim)
 
             bb = (bins[1:] + bins[:-1]) / 2
             coeff = e * 1e12 / (bb[1] - bb[0])
