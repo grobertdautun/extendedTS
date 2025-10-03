@@ -404,7 +404,7 @@ class ExtendedTS:
 
             return E, Q, dE, species
 
-    def makeSpectrumOnAx(self, ax, diag, iteration, waist, species='all', nbins=150, verbose=False, cumulative=False, minE=50, maxE=None, ang_lim=1.0):
+    def makeSpectrumOnAx(self, ax, diag, iteration, waist, species='all', nbins=150, verbose=False, cumulative=False, minE=50, maxE=None, ang_lim=1.0, label=None, set_ax=True):
         """
         Plots the spectrum on a given matplotlib ax
 
@@ -453,6 +453,14 @@ class ExtendedTS:
 
             divergence angle limit in degrees to consider particles for the analysis. Default is 1.0°
 
+        **label** : str, optional
+
+            label for the plot legend, default is species name
+
+        **set_ax** : boolean, optional
+
+            whether to set axis labels and title, default is True
+
         """
         diag, iteration, species = self._prepareDiagIterationSpecies(diag, iteration, species)
         maxE = 0 
@@ -473,23 +481,31 @@ class ExtendedTS:
             bb = (bins[1:] + bins[:-1]) / 2
             coeff = e * 1e12 / (bb[1] - bb[0])
 
-            ax.plot(bb, hist*coeff, label=spec)
+            ax.plot(bb, hist*coeff, label=spec if label==None else label)
             if i==0: 
                 maxE = np.max(en)
                 maxQ = np.max(hist * coeff)
             else: # if current species has a higher maxE than currently set, expand x-y axis to match
                 maxE = max(maxE, np.max(en))
                 maxQ = max(maxQ, np.max(hist * coeff))
-
+        AD_minE, AD_maxE = ax.get_xlim() # already defined axis limits
+        AD_minQ, AD_maxQ = ax.get_ylim()
+        maxE = max(maxE+10, AD_maxE) # resize if new spectrum does not fit
+        maxQ = max(maxQ+1, AD_maxQ)
+        minE = min(minE, AD_minE)
+        minQ = min(0, AD_minQ)
         ax.set(
-            xlabel = "E (MeV)",
-            ylabel = "dQ/dE (pC/MeV)",
-            xlim = (minE,maxE+10),
-            ylim = (0,maxQ+1),
-            title = "Spectre @ {:.2f} mm".format((iteration-13333) * self.dz_mov * 1e3)
+            xlim = (minE,maxE),
+            ylim = (minQ,maxQ),
         )
 
-        ax.legend()
+        if set_ax:
+            ax.set(
+                xlabel = "E (MeV)",
+                ylabel = "dQ/dE (pC/MeV)",
+                title = "Spectre @ {:.2f} mm".format((iteration-13333) * self.dz_mov * 1e3)
+            )
+            ax.legend()
 
     def makeSpectrum(self, diag, iteration, waist, species='all', nbins=150, minE=50, verbose=False, save_path='./results/'):
         """
