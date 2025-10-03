@@ -552,14 +552,14 @@ class ExtendedTS:
             os.makedirs("./results")
         plt.savefig(f'{save_path}/spectrum_{self.name}.svg')
 
-    def makeEDiv(self, diag, iteration, species, waist, ang_lim=1.0, verbose=False, bw_adjust=0.7):
+    def makeEDiv(self, diag, iteration, species, waist, ang_lim=1.0, verbose=False, bw_adjust=0.7, minE=50, maxE=None):
         diag, iteration, species = self._prepareDiagIterationSpecies(diag, iteration, species)
 
         if len(species) != 1:
             print("only 1 species")
             return
 
-        pdata = _get_data(diag, species[0], iteration, waist, verbose=verbose)
+        pdata = _get_data(diag, species[0], iteration, waist, verbose=verbose, e_lim=minE, sim_3D=self.is3D)
         en, w , ang = _get_e_w_ang(pdata, ang_lim)
 
         fig, ax = plt.subplots(figsize = (8,4))
@@ -580,8 +580,9 @@ class ExtendedTS:
         for c in ax.collections:
             c.set_edgecolor("face")
 
-        _, maxE = ax.get_xlim()
-        ax.set_xlim(50,maxE)
+        if maxE==None:
+            _, maxE = ax.get_xlim()
+        ax.set_xlim(minE,maxE)
 
         fig.tight_layout()
 
