@@ -232,7 +232,7 @@ class ExtendedTS:
                 message += "\n | + " + str(diag_ts.iterations)
         print(message)
 
-    def getParticlesSummary(self, diag, iteration, waist, species='all', cumulative=False, verbose=False, print_table=False, nbins=150, minE=50, maxE=None, peak_height=50):
+    def getParticlesSummary(self, diag, iteration, waist, species='all', cumulative=False, verbose=False, print_table=False, nbins=150, minE=50, maxE=None, peak_height=50, ang_lim=1.0):
         """
         Returns the peak energy, the charge (50%) and energy spread (50%)
 
@@ -279,6 +279,10 @@ class ExtendedTS:
 
             percentage of the peak height to compute the energy spread. Default is 50 (%)
 
+        **ang_lim** : float, optional
+
+            divergence angle limit in degrees to consider particles for the analysis. Default is 1.0°
+
         Returns
         -------------------------
         - E : array of float or float if cumulative = True
@@ -298,7 +302,7 @@ class ExtendedTS:
                 else:
                     pdata_sp = _get_data(diag, spec, iteration, waist, verbose=verbose, sim_3D=self.is3D)
                     pdata = np.concatenate((pdata, pdata_sp), axis=1)
-            en, _ = _get_e_w(pdata)
+            en, _ = _get_e_w(pdata, ang_lim=ang_lim)
             if en.shape[0]==0: # no energy data -> skip
                 E = 0
                 Q = 0
@@ -346,7 +350,7 @@ class ExtendedTS:
                     continue
 
                 pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=10, sim_3D=self.is3D)
-                en, _ = _get_e_w(pdata)
+                en, _ = _get_e_w(pdata, ang_lim=ang_lim)
                 if en.shape[0]==0: # no energy data -> skip
                     E[i] = 0
                     Q[i] = 0
