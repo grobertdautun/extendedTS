@@ -474,6 +474,10 @@ class ExtendedTS:
                 else:
                     pdata_sp = _get_data(diag, spec, iteration, waist, verbose=verbose, sim_3D=self.is3D)
                     pdata = np.concatenate((pdata, pdata_sp), axis=1)
+            en, _ = _get_e_w(pdata, ang_lim=ang_lim)
+            if en.shape[0]==0:
+                print("no particles found")
+                return
             hist, bins = _get_hist(pdata, maxE=np.max(en), minE=minE, nbins=nbins, ang_lim=ang_lim)
 
             bb = (bins[1:] + bins[:-1]) / 2
@@ -548,7 +552,7 @@ class ExtendedTS:
             os.makedirs("./results")
         plt.savefig(f'{save_path}/spectrum_{self.name}.svg')
 
-    def makeEDiv(self, diag, iteration, species, waist, ang_lim=1.0, verbose=False):
+    def makeEDiv(self, diag, iteration, species, waist, ang_lim=1.0, verbose=False, bw_adjust=0.7):
         diag, iteration, species = self._prepareDiagIterationSpecies(diag, iteration, species)
 
         if len(species) != 1:
@@ -569,8 +573,12 @@ class ExtendedTS:
             cmap='turbo', 
             thresh=0,
             cbar=True,
-            bw_adjust=0.7
+            bw_adjust=bw_adjust,
+            antialiased=False
         )
+
+        for c in ax.collections:
+            c.set_edgecolor("face")
 
         _, maxE = ax.get_xlim()
         ax.set_xlim(50,maxE)
