@@ -54,12 +54,10 @@ def scanPath(path, only_finalised=False, verbose=False):
     Parameters
     -----------------
     path : str
-        SE
 
     Returns
     -----------------
     sim_paths : array of str
-        all paths in base path that contain a potential sim
     """
     all_path_diags = []
     in_dir = os.listdir(path)
