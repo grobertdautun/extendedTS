@@ -333,7 +333,9 @@ class ExtendedTS:
 
             return E, Q, dE, species
 
-    def makeSpectrumOnAx(self, ax, diag, iteration, waist, species='all', nbins=150, verbose=False, cumulative=False, minE=50, maxE=None, ang_lim=1.0, label=None, set_ax=True):
+    def makeSpectrumOnAx(self, ax, diag, iteration, waist, species='all', nbins=150, verbose=False,
+                         cumulative=False, minE=50, maxE=None, ang_lim=1.0, label=None, set_ax=True, 
+                         peak=False, peak_height=50):
         """
         Plots the spectrum on a given matplotlib ax
 
@@ -388,6 +390,14 @@ class ExtendedTS:
         **set_ax** : boolean, optional
 
             whether to set axis labels and title, default is True
+            
+        **peak** : boolean, optional
+        
+            whether to plot the peak energy position and range, default is False
+            
+        **peak_height** : float, optional
+        
+            percentage of the peak height to compute the energy spread. Default is 50 (%)
 
         """
         diag, iteration, species = self._prepareDiagIterationSpecies(diag, iteration, species)

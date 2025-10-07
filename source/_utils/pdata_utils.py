@@ -34,7 +34,7 @@ def _get_hist (pdata, nbins=50, maxE=200, minE=50, ang_lim=1.0):
     hh, bins = np.histogram(en, weights=w, range=(minE,maxE), bins=nbins)
     return hh, bins
 
-def _get_peak(hist, bins, peak_height=0.5):
+def _get_peak(hist, bins, peak_height=50):
     bc = (bins[:-1] + bins[1:]) / 2
 
     peak_en = np.argmax(hist)
