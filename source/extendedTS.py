@@ -203,7 +203,8 @@ class ExtendedTS:
                 message += "\n | + " + str(diag_ts.iterations)
         print(message)
 
-    def getParticlesSummary(self, diag, iteration, waist, species='all', cumulative=False, verbose=False, print_table=False, nbins=150, minE=50, maxE=None, peak_height=50, ang_lim=1.0):
+    def getParticlesSummary(self, diag, iteration, waist, species='all', cumulative=False, verbose=False, print_table=False, 
+                            nbins=150, minE=50, maxE=None, peak_height=50, ang_lim=1.0):
         """
         Returns the peak energy, the charge (50%) and energy spread (50%)
 
@@ -391,13 +392,15 @@ class ExtendedTS:
 
             whether to set axis labels and title, default is True
             
-        **peak** : boolean, optional
+        **peak** : boolean or boolean array, optional
         
             whether to plot the peak energy position and range, default is False
+            you can specify an array the size of species to choose which one to plot the peak for
             
-        **peak_height** : float, optional
+        **peak_height** : float or float array, optional
         
             percentage of the peak height to compute the energy spread. Default is 50 (%)
+            you can specify an array the size of species to choose which one to use for the peak range
 
         """
         diag, iteration, species = self._prepareDiagIterationSpecies(diag, iteration, species)
@@ -423,6 +426,11 @@ class ExtendedTS:
             coeff = e * 1e12 / (bb[1] - bb[0])
 
             ax.plot(bb, hist*coeff, label=spec if label==None else label)
+
+            if peak:
+                peak_en_val, peak_range, _, _ = _get_peak(hist, bins, peak_height)
+                ax.axvline(peak_en_val, color='k', linestyle='--', label='Peak Energy')
+                ax.axvspan(peak_range[0], peak_range[1], color='grey', alpha=0.5, label=f'{peak_height}% peak range')
             if i==0: 
                 maxE = np.max(en)
                 maxQ = np.max(hist * coeff)
@@ -430,6 +438,12 @@ class ExtendedTS:
                 maxE = max(maxE, np.max(en))
                 maxQ = max(maxQ, np.max(hist * coeff))
         else:
+            if type(peak)==bool:
+                peak = [peak]*len(species)
+            if type(peak_height) in [int, float]:
+                peak_height = [peak_height]*len(species)
+            if len(peak)!=len(species) or len(peak_height)!=len(species):
+                raise ValueError("peak and peak_height must be boolean or float arrays of the same size as species")
             for i,spec in enumerate(species):
                 if spec not in diag.avail_species:
                     print(f'Species {spec} does not exist. Skipping this one')
@@ -446,6 +460,10 @@ class ExtendedTS:
                 coeff = e * 1e12 / (bb[1] - bb[0])
 
                 ax.plot(bb, hist*coeff, label=spec if label==None else label)
+                if peak[i]:
+                    peak_en_val, peak_range, _, _ = _get_peak(hist, bins, peak_height[i])
+                    ax.axvline(peak_en_val, color='k', linestyle='--', label='Peak Energy')
+                    ax.axvspan(peak_range[0], peak_range[1], color='grey', alpha=0.5, label=f'{peak_height[i]}% peak range')
                 if i==0: 
                     maxE = np.max(en)
                     maxQ = np.max(hist * coeff)
