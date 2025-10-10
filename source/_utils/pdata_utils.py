@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.constants import e
 
+def _adaptTableValues(x):
+    return list(map(lambda s: "{:.2f}".format(float(s)), x))
+
 def _get_data(ts, species, iteration, waist, verbose=False, e_lim=50, sim_3D=False):
     pdata = ts.get_particle(species=species, var_list=["x", "z", "ux", "uy", "uz", "w"], iteration=iteration)
     if not sim_3D:
