@@ -327,8 +327,12 @@ class ExtendedTS:
 
         """
         diag, iteration, species = self._prepareDiagIterationSpecies(diag, iteration, species)
-        maxE = 0 
-        maxQ = 0
+        isMaxEAuto = False
+        if maxE==None:
+            maxE = 0 
+            maxQ = 0
+            isMaxEAuto = True
+            
         if cumulative:
             for i,spec in enumerate(species):
                 if spec not in diag.avail_species:
@@ -354,12 +358,10 @@ class ExtendedTS:
                 peak_en_val, peak_range, _, _ = _get_peak(hist, bins, peak_height)
                 ax.axvline(peak_en_val, color='k', linestyle='--', label='Peak Energy')
                 ax.axvspan(peak_range[0], peak_range[1], color='grey', alpha=0.5, label=f'{peak_height}% peak range')
-            if i==0: 
+            
+            if isMaxEAuto: 
                 maxE = np.max(en)
-                maxQ = np.max(hist * coeff)
-            else: # if current species has a higher maxE than currently set, expand x-y axis to match
-                maxE = max(maxE, np.max(en))
-                maxQ = max(maxQ, np.max(hist * coeff))
+            maxQ = np.max(hist * coeff)
         else:
             if type(peak)==bool:
                 peak = [peak]*len(species)
@@ -387,17 +389,19 @@ class ExtendedTS:
                     peak_en_val, peak_range, _, _ = _get_peak(hist, bins, peak_height[i])
                     ax.axvline(peak_en_val, color='k', linestyle='--', label='Peak Energy')
                     ax.axvspan(peak_range[0], peak_range[1], color='grey', alpha=0.5, label=f'{peak_height[i]}% peak range')
-                if i==0: 
-                    maxE = np.max(en)
-                    maxQ = np.max(hist * coeff)
-                else: # if current species has a higher maxE than currently set, expand x-y axis to match
-                    maxE = max(maxE, np.max(en))
-                    maxQ = max(maxQ, np.max(hist * coeff))
+                if isMaxEAuto:    
+                    if i==0:
+                        maxE = np.max(en)
+                        maxQ = np.max(hist * coeff)
+                    else: # if current species has a higher maxE than currently set, expand x-y axis to match
+                        maxE = max(maxE, np.max(en))
+                        maxQ = max(maxQ, np.max(hist * coeff))
 
         # post plot limits and labels
-        AD_minE, AD_maxE = ax.get_xlim() # already defined axis limits
+        if isMaxEAuto:
+            AD_minE, AD_maxE = ax.get_xlim() # already defined axis limits
+            maxE = max(maxE+10, AD_maxE) # resize if new spectrum does not fit
         AD_minQ, AD_maxQ = ax.get_ylim()
-        maxE = max(maxE+10, AD_maxE) # resize if new spectrum does not fit
         maxQ = max(maxQ+1, AD_maxQ)
         minE = min(minE, AD_minE) 
         minQ = min(0, AD_minQ)
@@ -412,7 +416,6 @@ class ExtendedTS:
                 ylabel = "dQ/dE (pC/MeV)",
                 title = "Spectre @ {:.2f} mm".format((iteration-13333) * self.dz_mov * 1e3)
             )
-            ax.legend()
 
     def makeSpectrum(self, diag, iteration, waist, species='all', nbins=150, minE=50, verbose=False, save_path='./results/'):
         """
