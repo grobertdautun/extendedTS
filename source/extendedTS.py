@@ -338,9 +338,9 @@ class ExtendedTS:
                     print(f'Species {spec} does not exist. Skipping this one')
                     continue
                 if i==0:
-                    pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, sim_3D=self.is3D)
+                    pdata = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=minE, sim_3D=self.is3D)
                 else:
-                    pdata_sp = _get_data(diag, spec, iteration, waist, verbose=verbose, sim_3D=self.is3D)
+                    pdata_sp = _get_data(diag, spec, iteration, waist, verbose=verbose, e_lim=minE, sim_3D=self.is3D)
                     pdata = np.concatenate((pdata, pdata_sp), axis=1)
             en, _ = _get_e_w(pdata, ang_lim=ang_lim)
             if en.shape[0]==0:
