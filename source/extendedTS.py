@@ -301,7 +301,6 @@ class ExtendedTS:
         **minE** and **maxE** : float, optional
 
             energy limits of the spectrum. Defaults are 50, None (auto computed)
-            !! maxE not working yet
 
         **ang_lim** : float, optional
 
@@ -330,8 +329,8 @@ class ExtendedTS:
         isMaxEAuto = False
         if maxE==None:
             maxE = 0 
-            maxQ = 0
             isMaxEAuto = True
+        maxQ = 0 # always auto
             
         if cumulative:
             for i,spec in enumerate(species):
@@ -388,20 +387,21 @@ class ExtendedTS:
                 if peak[i]:
                     peak_en_val, peak_range, _, _ = _get_peak(hist, bins, peak_height[i])
                     ax.axvline(peak_en_val, color='k', linestyle='--', label='Peak Energy')
-                    ax.axvspan(peak_range[0], peak_range[1], color='grey', alpha=0.5, label=f'{peak_height[i]}% peak range')
-                if isMaxEAuto:    
-                    if i==0:
+                    ax.axvspan(peak_range[0], peak_range[1], color='grey', alpha=0.5, label=f'{peak_height[i]}% peak range')   
+                if i==0:
+                    if isMaxEAuto: 
                         maxE = np.max(en)
-                        maxQ = np.max(hist * coeff)
-                    else: # if current species has a higher maxE than currently set, expand x-y axis to match
+                    maxQ = np.max(hist * coeff)
+                else: # if current species has a higher maxE than currently set, expand x-y axis to match
+                    if isMaxEAuto:
                         maxE = max(maxE, np.max(en))
-                        maxQ = max(maxQ, np.max(hist * coeff))
+                    maxQ = max(maxQ, np.max(hist * coeff))
 
         # post plot limits and labels
-        if isMaxEAuto:
-            AD_minE, AD_maxE = ax.get_xlim() # already defined axis limits
-            maxE = max(maxE+10, AD_maxE) # resize if new spectrum does not fit
+        AD_minE, AD_maxE = ax.get_xlim() # already defined axis limits
         AD_minQ, AD_maxQ = ax.get_ylim()
+        if isMaxEAuto:
+            maxE = max(maxE+10, AD_maxE) # resize if new spectrum does not fit
         maxQ = max(maxQ+1, AD_maxQ)
         minE = min(minE, AD_minE) 
         minQ = min(0, AD_minQ)
