@@ -9,7 +9,7 @@ import os
 import seaborn
 import warnings
 
-from ._utils.pdata_utils import _get_data, _get_e_w, _get_e_w_ang, _get_hist, _get_peak, _adaptTableValues
+from _utils.pdata_utils import _get_data, _get_e_w, _get_e_w_ang, _get_hist, _get_peak, _adaptTableValues
 
 class ExtendedTS:
     """
